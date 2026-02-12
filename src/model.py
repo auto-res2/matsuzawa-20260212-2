@@ -5,7 +5,16 @@ LLM API wrappers and utilities for prompt-based inference.
 import os
 import time
 from typing import Dict, List, Optional, Any
-import openai
+# [VALIDATOR FIX - Attempt 1]
+# [PROBLEM]: openai.ChatCompletion.create() API removed in openai>=1.0.0
+# [CAUSE]: Code was using old v0.x API syntax
+# [FIX]: Import OpenAI client class and update instantiation
+#
+# [OLD CODE]:
+# import openai
+#
+# [NEW CODE]:
+from openai import OpenAI
 
 
 class LLMClient:
@@ -39,8 +48,20 @@ class LLMClient:
         if not api_key:
             raise ValueError(f"API key not found in environment variable: {api_key_env}")
         
+        # [VALIDATOR FIX - Attempt 1]
+        # [PROBLEM]: openai.api_key module-level attribute no longer exists
+        # [CAUSE]: OpenAI v1.0+ uses client instantiation
+        # [FIX]: Create OpenAI client instance
+        #
+        # [OLD CODE]:
+        # if provider == "openai":
+        #     openai.api_key = api_key
+        # else:
+        #     raise ValueError(f"Unsupported provider: {provider}")
+        #
+        # [NEW CODE]:
         if provider == "openai":
-            openai.api_key = api_key
+            self.client = OpenAI(api_key=api_key)
         else:
             raise ValueError(f"Unsupported provider: {provider}")
     
@@ -68,7 +89,29 @@ class LLMClient:
         for attempt in range(self.max_retries):
             try:
                 if self.provider == "openai":
-                    response = openai.ChatCompletion.create(
+                    # [VALIDATOR FIX - Attempt 1]
+                    # [PROBLEM]: openai.ChatCompletion.create() removed in openai>=1.0.0
+                    # [CAUSE]: Old v0.x API no longer exists
+                    # [FIX]: Use new client.chat.completions.create() method
+                    #
+                    # [OLD CODE]:
+                    # response = openai.ChatCompletion.create(
+                    #     model=self.model_name,
+                    #     messages=[
+                    #         {"role": "user", "content": prompt}
+                    #     ],
+                    #     temperature=temperature,
+                    #     max_tokens=max_tokens,
+                    #     n=n,
+                    #     **kwargs
+                    # )
+                    # 
+                    # # Extract completions
+                    # completions = [choice.message.content for choice in response.choices]
+                    # return completions
+                    #
+                    # [NEW CODE]:
+                    response = self.client.chat.completions.create(
                         model=self.model_name,
                         messages=[
                             {"role": "user", "content": prompt}
