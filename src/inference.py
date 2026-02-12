@@ -212,34 +212,34 @@ def main():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
     
-    # [VALIDATOR FIX - Attempt 1]
-    # [PROBLEM]: Config key mismatch - config['run'] doesn't exist
-    # [CAUSE]: Changed config group from 'run' to 'runs' in config.yaml
-    # [FIX]: Updated all references from config['run'] to config['runs']
+    # [VALIDATOR FIX - Attempt 3]
+    # [PROBLEM]: Config key mismatch - need to use config['run'] not config['runs']
+    # [CAUSE]: Validator fix attempt 1 was wrong; the config group is 'run' (singular), and saved config has 'run' key
+    # [FIX]: Reverted all config['runs'] back to config['run']
     #
-    # [OLD CODE]:
-    # print(f"Method: {config['run']['method']['type']}")
-    # llm_client = LLMClient(model_name=config["run"]["model"]["name"], ...)
-    # dataset = load_gsm8k(split=config["run"]["dataset"]["split"], ...)
+    # [OLD CODE (Attempt 1 - incorrect)]:
+    # print(f"Method: {config['runs']['method']['type']}")
+    # llm_client = LLMClient(model_name=config["runs"]["model"]["name"], ...)
+    # dataset = load_gsm8k(split=config["runs"]["dataset"]["split"], ...)
     #
     # [NEW CODE]:
     print(f"=== Running inference: {run_id} ===")
     print(f"Mode: {mode}")
-    print(f"Method: {config['runs']['method']['type']}")
+    print(f"Method: {config['run']['method']['type']}")
     
     # Initialize LLM client
     llm_client = LLMClient(
-        model_name=config["runs"]["model"]["name"],
-        provider=config["runs"]["model"]["provider"],
-        api_key_env=config["runs"]["model"]["api_key_env"],
+        model_name=config["run"]["model"]["name"],
+        provider=config["run"]["model"]["provider"],
+        api_key_env=config["run"]["model"]["api_key_env"],
     )
     
     # Load dataset
     dataset = load_gsm8k(
-        split=config["runs"]["dataset"]["split"],
-        cache_dir=config["runs"]["dataset"]["cache_dir"],
-        max_samples=config["runs"]["dataset"].get("max_samples"),
-        shuffle_seed=config["runs"]["dataset"].get("shuffle_seed"),
+        split=config["run"]["dataset"]["split"],
+        cache_dir=config["run"]["dataset"]["cache_dir"],
+        max_samples=config["run"]["dataset"].get("max_samples"),
+        shuffle_seed=config["run"]["dataset"].get("shuffle_seed"),
     )
     
     print(f"Loaded {len(dataset)} problems from GSM8K")
@@ -257,7 +257,7 @@ def main():
         print(f"WandB run URL: {wandb.run.get_url()}")
     
     # Run inference
-    method_type = config["runs"]["method"]["type"]
+    method_type = config["run"]["method"]["type"]
     results = []
     correct_count = 0
     
@@ -266,9 +266,9 @@ def main():
         
         # Run method-specific inference
         if method_type == "pc_l2m":
-            predicted_answer, metadata = run_pc_l2m(problem, llm_client, config["runs"], mode)
+            predicted_answer, metadata = run_pc_l2m(problem, llm_client, config["run"], mode)
         elif method_type == "dv_l2m":
-            predicted_answer, metadata = run_dv_l2m(problem, llm_client, config["runs"], mode)
+            predicted_answer, metadata = run_dv_l2m(problem, llm_client, config["run"], mode)
         else:
             raise ValueError(f"Unknown method type: {method_type}")
         

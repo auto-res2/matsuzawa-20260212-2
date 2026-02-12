@@ -29,18 +29,30 @@ def main(cfg: DictConfig):
     print(f"Mode: {cfg.mode}")
     print(f"Results dir: {cfg.results_dir}")
     
+    # [VALIDATOR FIX - Attempt 3]
+    # [PROBLEM]: Key 'dataset' is not in struct - ConfigAttributeError at line 35
+    # [CAUSE]: dataset/wandb are nested under cfg.run.* (from run config group), not at cfg.* level
+    # [FIX]: Access via cfg.run.dataset, cfg.run.wandb instead of cfg.dataset, cfg.wandb
+    #
+    # [OLD CODE]:
+    # cfg.dataset.max_samples = 10
+    # cfg.wandb.mode = "online"
+    # if "sanity" not in cfg.wandb.project:
+    #     cfg.wandb.project = f"{cfg.wandb.project}-sanity"
+    #
+    # [NEW CODE]:
     # Apply mode-specific overrides
     if cfg.mode == "sanity_check":
         # Sanity check mode: minimal samples, online wandb, separate namespace
-        cfg.dataset.max_samples = 10
-        cfg.wandb.mode = "online"
+        cfg.run.dataset.max_samples = 10
+        cfg.run.wandb.mode = "online"
         # Use separate wandb project for sanity checks
-        if "sanity" not in cfg.wandb.project:
-            cfg.wandb.project = f"{cfg.wandb.project}-sanity"
+        if "sanity" not in cfg.run.wandb.project:
+            cfg.run.wandb.project = f"{cfg.run.wandb.project}-sanity"
     elif cfg.mode == "main":
         # Main mode: full dataset, online wandb
-        cfg.dataset.max_samples = None
-        cfg.wandb.mode = "online"
+        cfg.run.dataset.max_samples = None
+        cfg.run.wandb.mode = "online"
     
     # Create results directory
     results_dir = Path(cfg.results_dir) / cfg.run.run_id
