@@ -1,1 +1,30 @@
-# Please list the required python packages.
+[project]
+name = "matsuzawa-20260212-2"
+version = "0.1.0"
+description = "Proof-Carrying Least-to-Most prompting experiment"
+requires-python = ">=3.9"
+
+dependencies = [
+    # Core dependencies
+    "hydra-core>=1.3.0",
+    "omegaconf>=2.3.0",
+    "wandb>=0.15.0",
+    "pyyaml>=6.0",
+    
+    # LLM APIs
+    "openai>=0.27.0",
+    
+    # Data and ML
+    "datasets>=2.14.0",
+    "numpy>=1.24.0",
+    
+    # Visualization
+    "matplotlib>=3.7.0",
+    
+    # Utilities
+    "tqdm>=4.65.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

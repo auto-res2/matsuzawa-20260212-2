@@ -1,0 +1,62 @@
+# Run config: Decomposition Verifier Least-to-Most (DV-L2M)
+# Baseline: LLM-based verifier scoring (rubber-stamping risk)
+
+run_id: comparative-1-gsm8k
+
+method:
+  type: dv_l2m  # Decomposition Verifier Least-to-Most
+  name: DV-L2M
+  description: "L2M with same-LLM verifier scoring (baseline)"
+  
+  # Decomposition settings (same budget as PC-L2M)
+  n_decompositions: 5
+  subproblems_per_decomp: [3, 4, 5, 6]
+  
+  # Solving settings (same as PC-L2M)
+  temperature: 0.7
+  max_tokens: 1024
+  
+  # Verification settings
+  verification:
+    enabled: true
+    type: llm_verifier  # Same LLM scores reasoning quality
+    verifier_prompt: |
+      You are a careful reasoning verifier. Rate the quality of the following solution to a math word problem on a scale of 0-10.
+      Consider:
+      - Logical consistency of the reasoning
+      - Correctness of arithmetic operations
+      - Completeness of the solution
+      
+      Problem: {problem}
+      
+      Solution:
+      {solution}
+      
+      Provide only a numeric score from 0 to 10.
+    temperature: 0.0  # Deterministic verifier
+  
+  # Selection strategy
+  selection:
+    strategy: top_scored  # Pick candidate with highest verifier score
+    tie_breaker: random
+    fallback: self_consistency
+
+model:
+  name: gpt-3.5-turbo
+  provider: openai
+  api_key_env: OPENAI_API_KEY
+  cache_dir: .cache/models
+
+dataset:
+  name: gsm8k
+  split: test
+  cache_dir: .cache/datasets
+  max_samples: null  # Full dataset in main mode
+  shuffle_seed: 42
+
+inference:
+  batch_size: 1
+  num_workers: 1
+
+wandb:
+  tags: ["baseline", "dv-l2m", "gsm8k", "prompt-tuning"]

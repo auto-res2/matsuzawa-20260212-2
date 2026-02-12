@@ -1,0 +1,52 @@
+# Run config: Proof-Carrying Least-to-Most (PC-L2M)
+# Proposed method with external Python verification
+
+run_id: proposed-gsm8k
+
+method:
+  type: pc_l2m  # Proof-Carrying Least-to-Most
+  name: PC-L2M
+  description: "L2M with auditable executable arithmetic verification"
+  
+  # Decomposition settings
+  n_decompositions: 5  # Number of alternative decompositions to sample
+  subproblems_per_decomp: [3, 4, 5, 6]  # Range of subproblem counts
+  
+  # Solving settings
+  temperature: 0.7
+  max_tokens: 1024
+  
+  # Verification settings
+  verification:
+    enabled: true
+    type: python_exec  # External deterministic verification
+    allowed_ops: ["+", "-", "*", "/", "//", "%", "**", "(", ")"]
+    require_answer_match: true
+    tolerance: 1e-6
+  
+  # Selection strategy
+  selection:
+    strategy: verified_majority  # Pick majority answer among verified candidates
+    tie_breaker: simplicity  # Fewest CALC lines, then highest consistency
+    fallback: self_consistency  # If no verified candidates, use majority vote
+
+model:
+  name: gpt-3.5-turbo
+  provider: openai
+  api_key_env: OPENAI_API_KEY
+  cache_dir: .cache/models
+
+dataset:
+  name: gsm8k
+  split: test
+  cache_dir: .cache/datasets
+  max_samples: null  # Full dataset in main mode
+  shuffle_seed: 42
+
+inference:
+  batch_size: 1  # Process one problem at a time
+  num_workers: 1
+  
+# WandB settings (inherited from config.yaml, can override here)
+wandb:
+  tags: ["proposed", "pc-l2m", "gsm8k", "prompt-tuning"]
