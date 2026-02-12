@@ -41,18 +41,37 @@ def main(cfg: DictConfig):
     #     cfg.wandb.project = f"{cfg.wandb.project}-sanity"
     #
     # [NEW CODE]:
+    
+    # [VALIDATOR FIX - Attempt 4]
+    # [PROBLEM]: Key 'mode' is not in struct at cfg.run.wandb.mode (line 48 original code)
+    # [CAUSE]: Run-specific wandb config in comparative-1-gsm8k.yaml only defines tags,
+    #          not mode/project. Global config.yaml has wandb.mode/project. Should use
+    #          cfg.wandb (global) not cfg.run.wandb (run-specific tags only).
+    # [FIX]: Access wandb.mode and wandb.project at global cfg level, dataset at cfg.run level
+    #
+    # [OLD CODE]:
+    # if cfg.mode == "sanity_check":
+    #     cfg.run.dataset.max_samples = 10
+    #     cfg.run.wandb.mode = "online"
+    #     if "sanity" not in cfg.run.wandb.project:
+    #         cfg.run.wandb.project = f"{cfg.run.wandb.project}-sanity"
+    # elif cfg.mode == "main":
+    #     cfg.run.dataset.max_samples = None
+    #     cfg.run.wandb.mode = "online"
+    #
+    # [NEW CODE]:
     # Apply mode-specific overrides
     if cfg.mode == "sanity_check":
         # Sanity check mode: minimal samples, online wandb, separate namespace
         cfg.run.dataset.max_samples = 10
-        cfg.run.wandb.mode = "online"
+        cfg.wandb.mode = "online"  # Global wandb config has mode field
         # Use separate wandb project for sanity checks
-        if "sanity" not in cfg.run.wandb.project:
-            cfg.run.wandb.project = f"{cfg.run.wandb.project}-sanity"
+        if "sanity" not in cfg.wandb.project:
+            cfg.wandb.project = f"{cfg.wandb.project}-sanity"
     elif cfg.mode == "main":
         # Main mode: full dataset, online wandb
         cfg.run.dataset.max_samples = None
-        cfg.run.wandb.mode = "online"
+        cfg.wandb.mode = "online"  # Global wandb config has mode field
     
     # Create results directory
     results_dir = Path(cfg.results_dir) / cfg.run.run_id
