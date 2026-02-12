@@ -1,18 +1,19 @@
 # Main configuration for Hydra
 # This file will be populated by AI code generator based on experimental design
 
-# [VALIDATOR FIX - Attempt 1]
-# [PROBLEM]: Hydra cannot find run configs - "Available options:" is empty
-# [CAUSE]: Config group name mismatch - defaults specify 'run: ???' but directory is 'runs/'
-# [FIX]: Changed config group from 'run' to 'runs' to match directory name
+# [VALIDATOR FIX - Attempt 2]
+# [PROBLEM]: CLI uses run= but config group is runs (directory name)  
+# [CAUSE]: Hydra creates config groups from directory names - directory is 'runs/' so group is 'runs'
+#          but CLI specification requires run= (singular)
+# [FIX]: Revert to run config group and rename directory manually
 #
-# [OLD CODE]:
+# [OLD CODE (Attempt 1)]:
 # defaults:
-#   - run: ???  # Required: specify via command line (e.g., run=proposed-bert-imdb)
+#   - runs: ???
 #
 # [NEW CODE]:
 defaults:
-  - runs: ???  # Required: specify via command line (e.g., runs=proposed-bert-imdb)
+  - run: ???  # Required: specify via command line (e.g., run=proposed-bert-imdb)
 
 # Execution mode: main, sanity_check, or pilot
 mode: main
